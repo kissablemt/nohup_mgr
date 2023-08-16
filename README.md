@@ -1,11 +1,21 @@
-1. 无任何输出
+1. 安装
+```bash
+sudo ./install.sh
+```
+
+2. 无任何输出
 ```bash
 nh watch nvidia-smi
 ```
 
-2. 有日志输出
+3. 有日志输出
 ```bash
 nhlog watch nvidia-smi ./logs
 ```
 
-3. `nhmgr`重看, `-c`清除已经关闭的进程
+4. `nhmgr`查看nohup记录, `-c`清除已经关闭的进程
+
+5. 卸载
+```bash
+sudo ./uninstall.sh
+```
