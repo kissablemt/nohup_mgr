@@ -8,7 +8,7 @@ sudo ./install.sh
 nh watch nvidia-smi
 ```
 
-3. 有日志输出
+3. 有日志输出, 最后的参数为日志文件
 ```bash
 nhlog watch nvidia-smi ./logs
 ```
