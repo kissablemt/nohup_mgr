@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# Get the absolute path of the current script
-script_path=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# Create the 'nohup_mgr' folder if it doesn't exist
+mgr_root="/tmp/nohup_mgr"
+mkdir -p $mgr_root
 
-# Create the 'pids' folder
-mkdir -p "/tmp/pids"
-
-# Get the command arguments
+# Parse the command line arguments
 cmd="$@"
 
 # Extract the last string separated by spaces from cmd
@@ -20,9 +18,15 @@ nohup $cmd >$last_arg 2>&1 &
 
 # Get the PID of cmd
 pid=$!
+start=$(date +"%Y-%m-%d %H:%M:%S %A")
 
-# Write the PID to the 'pids' folder
-echo "$pid" > "/tmp/pids/$pid"
+# If the last argument is not an absolute path, then prepend the current working directory
+if [[ "$last_arg" != /* ]]; then
+    last_arg="$PWD/$last_arg"
+fi
 
-# Echo the last argument as a path
-echo "$last_arg"
+# Save the command and log file paths to a file
+mkdir -p $mgr_root/$pid
+echo "$cmd" > "$mgr_root/${pid}/cmd"
+echo "$last_arg" > "$mgr_root/${pid}/log"
+echo "$start" > "$mgr_root/${pid}/start"

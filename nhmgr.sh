@@ -1,49 +1,45 @@
 #!/bin/bash
 
-# 检查pids文件夹是否存在
-pids_folder="/tmp/pids"
-if [ ! -d "$pids_folder" ]; then
-  echo "pids文件夹不存在"
-  exit 1
-fi
+# Create the 'nohup_mgr' folder if it doesn't exist
+mgr_root="/tmp/nohup_mgr"
+mkdir -p $mgr_root
 
-# 检查pids文件夹是否为空
-if [ -z "$(ls -A "$pids_folder")" ]; then
-   echo "no pids"
+if [ -z "$(ls -A "$mgr_root")" ]; then
+   echo "Empty"
    exit 1
 fi
 
-# 处理命令行参数，检查是否需要清除killed的PID文件
+# Process command line parameters to check if you need to clear the killed PID file
 clear_files=false
 if [ "$1" == "--clear" ] || [ "$1" == "-c" ]; then
   clear_files=true
 fi
 
-# 获取pids文件夹下所有pid文件的路径
-pid_files=("$pids_folder"/*)
+# Get all pid files
+pid_files=("$mgr_root"/*)
 
-# 循环遍历每个pid文件
 for pid_file in "${pid_files[@]}"; do
-  # 从文件名中提取PID
   pid=$(basename "$pid_file")
+  start=$(cat "$pid_file/start")
+  cmd=$(cat "$pid_file/cmd")
+  log=$(cat "$pid_file/log")
 
-  # 检查PID是否仍在运行
   if ps -p "$pid" >/dev/null; then
-    # 获取进程名字和创建时间
+    status="\e[32m[alive]\e[0m"
+    # Get the real start time of the process
+    start=$(ps -p "$pid" -o etimes | awk 'BEGIN{now=systime()} {$1=strftime("%Y-%m-%d %H:%M:%S %A", now-$1)} END{print $1}')  
+    # Get the full command of the process
     cmd=$(ps -p "$pid" -o cmd=)
-    # start=$(ps -p "$pid" --format "%Y-%m-%d %H:%M:%S" -o lstart=)
-start=$(ps -p "$pid" -o etimes | awk 'BEGIN{now=systime()} {$1=strftime("%Y-%m-%d %H:%M:%S %A", now-$1)} END{print $1}')    
-    
-    echo "PID $pid: alive "
-    echo "    CMD: $cmd"
-    echo "    START: $start"
-    
   else
-    echo "PID $pid: killed"
+    status="\e[31m[kill]\e[0m"
     if [ "$clear_files" == true ]; then
-      # 删除状态为"killed"的PID文件
-      rm "$pid_file"
+      rm -rf "$pid_file"
     fi
   fi
+
+  echo -e "PID \e[36m$pid\e[0m $status" "\e[35m$start\e[0m"
+  # echo -e "    nohup \e[33m$cmd\e[0m > \e[34m$log\e[0m 2>&1 &"
+  echo -e "    CMD: \e[33m$cmd\e[0m"
+  echo -e "    LOG: \e[34m$log\e[0m"
   echo -e ""
 done

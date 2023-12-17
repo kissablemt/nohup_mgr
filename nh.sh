@@ -1,16 +1,21 @@
 #!/bin/bash
 
-# 创建pids文件夹
-mkdir -p "/tmp/pids"
+# Create the 'nohup_mgr' folder if it doesn't exist
+mgr_root="/tmp/nohup_mgr"
+mkdir -p $mgr_root
 
-# 获取命令参数
+# Parse the command line arguments
 cmd="$@"
 
-# 运行cmd，并将输出重定向到日志文件
-nohup $cmd >/dev/null 2>&1 &
+# Run cmd and redirect the output to a log file
+nohup $cmd > /dev/null 2>&1 &
 
-# 获取cmd的PID
+# Get the PID of cmd
 pid=$!
+start=$(date +"%Y-%m-%d %H:%M:%S %A")
 
-# 将pid写入到pids文件夹
-echo "$pid" > "/tmp/pids/$pid"
+# Save the command and log file paths to a file
+mkdir -p $mgr_root/$pid
+echo "$cmd" > "$mgr_root/${pid}/cmd"
+echo "/dev/null" > "$mgr_root/${pid}/log"
+echo "$start" > "$mgr_root/${pid}/start"
